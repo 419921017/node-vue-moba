@@ -1,36 +1,46 @@
 const express = require('express');
-const Category = require('./../../models/Category');
+const inflection = require('inflection');
 
-const router = express.Router()
+const router = express.Router({
+  mergeParams: true
+})
 
 module.exports = app => {
-  router.post('/categories', async (req, res) => {
-    const model = await Category.create(req.body);
+  router.post('/', async (req, res) => {
+    const model = await req.Model.create(req.body);
     res.send(model)
   })
 
-  router.get('/categories', async (req, res) => {
-    const items = await Category.find().populate('parent').limit(10);
+  router.get('/', async (req, res) => {
+    const queryOptions = {}
+    if (req.Model.modelName === 'Category') {
+      queryOptions.populate = 'parent'
+    }
+    const items = await req.Model.find().setOptions(queryOptions).limit(10);
     res.send(items)
   })
 
-  router.get('/categories/:id', async (req, res) => {
+  router.get('/:id', async (req, res) => {
     const {params: {id}} = req;
-    const model = await Category.findById(id);
+    const model = await req.Model.findById(id);
     res.send(model)
   })
 
-  router.put('/categories/:id', async (req, res) => {
+  router.put('/:id', async (req, res) => {
     const {params: {id}, body} = req;
-    const model = await Category.findByIdAndUpdate(id, body);
+    const model = await req.Model.findByIdAndUpdate(id, body);
     res.send(model)
   })
 
-  router.delete('/categories/:id', async (req, res) => {
+  router.delete('/:id', async (req, res) => {
     const {params: {id}} = req;
-    await Category.findByIdAndDelete(id);
+    await req.Model.findByIdAndDelete(id);
     res.send({success: true})
   })
 
-  app.use('/admin/api', router);
+  app.use('/admin/api/rest/:resource', async (req, res, next) => {
+    const modelName = inflection.classify(req.params.resource);
+    req.Model = require(`./../../models/${modelName}`);
+    next();
+  }, router);
 }
