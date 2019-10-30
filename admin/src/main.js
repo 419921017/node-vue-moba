@@ -1,8 +1,15 @@
 import Vue from 'vue'
 import App from './App.vue'
+import './plugins/element.js'
+import http from './plugins/http';
+import router from './router'
 
 Vue.config.productionTip = false
 
+Vue.prototype.$http = http;
+
+
 new Vue({
-  render: h => h(App),
+  router,
+  render: h => h(App)
 }).$mount('#app')
