@@ -1,5 +1,7 @@
 const express = require('express');
 const inflection = require('inflection');
+const multer = require('multer');
+const path = require('path');
 
 const router = express.Router({
   mergeParams: true
@@ -43,4 +45,14 @@ module.exports = app => {
     req.Model = require(`./../../models/${modelName}`);
     next();
   }, router);
+
+  const upload = multer({
+    dest: __dirname+ '/../../uploads'
+  })
+
+  app.post('/admin/api/upload', upload.single('file'), (req, res) => {
+    const file = req.file
+    file.url = `http://localhost:3001/uploads/${file.filename}`;
+    res.send(req.file);
+  })
 }
